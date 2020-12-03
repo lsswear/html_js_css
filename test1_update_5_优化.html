@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<!--https://www.jb51.net/article/154869.htm-->
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0">
+	<mate http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>cluttonous snake</title>
+	<style type="text/css" media="screen">
+		body{
+			margin:0;
+			padding:0;
+		}
+		.main{
+			background:#aaa;
+			width: 100%;
+			height: 100%;
+		}
+		.main .map{
+			width: 100%;
+			height: 85%;
+			background:#eeeeee;
+			position: relative;
+			overflow: hidden;
+		}
+		.main .title{
+			width: 90%;
+			height: 5%;
+			display: table;
+			margin: 0 auto;
+		}
+		.map .last{
+			border-radius: 50%;
+		}
+		.map .body{
+			border-radius: 50%;
+		}
+		.map .header{
+			border-radius: 50%;
+			background-image: url('resource/snake_header_2.png');
+			background-size: 100%;
+			border:0px;
+		}
+		.map .barrier{
+			background-image: url('resource/barrier_1.png');
+			background-size: 100%;
+			border:0px;
+		}
+		.map .food_1{
+			background-image: url('resource/food_1.png');
+			background-size: 100%;
+			border:0px;
+		}
+		.map .food_2{
+			background-image: url('resource/food_2.png');
+			background-size: 100%;
+			border:0px;	
+		}
+		.map .food_3{
+			background-image: url('resource/food_3.png');
+			background-size: 100%;
+			border:0px;	
+		}
+		.main .buttons{
+			width: 100%;
+			height: 10%;
+			display: table;
+		}
+		.buttons .item{
+			width: 20%;
+			text-align: center;
+			vertical-align: middle;
+			display: table-cell;
+		}
+		.title .info{
+			width: 90%;
+			margin: 0px auto;
+			vertical-align: middle;
+			display: table-cell;
+		}
+		.title .info .level{
+			float: left;
+		}
+		.title .info .score{
+			float: right;
+		}
+	</style>
+	<link rel="stylesheet" href="resource/button.css">
+	<link rel="stylesheet" href="resource/font-awesome-4.7.0/font-awesome-4.7.0/css/font-awesome.min.css">
+</head>
+<body id="body">
+	<div class="main" id="main">
+		<div class="title" id="title">
+			<div class="info">
+				<div class="level">
+					<!--<i class="fa fa-gift" aria-hidden="true"></i>
+					<i class="fa fa-gift" aria-hidden="true"></i>
+					<i class="fa fa-gift" aria-hidden="true"></i>-->
+					<!--<b>level</b>&nbsp;&nbsp;&nbsp;<span></span>-->
+				</div>
+				<div class="score">
+					<b><i class="fa fa-star" aria-hidden="true"></i></b>&nbsp;&nbsp;&nbsp;<span class="score_num">100</span>
+				</div>
+			</div>
+		</div>
+		<div class="map" id="map"></div>
+		<div class="buttons">
+			<div class="item">
+				<span class="button-wrap" id="up">
+				    <button class="button button-circle button-raised button-highlight">
+				      <i class="fa fa-angle-up" aria-hidden="true"></i>
+				    </button>
+				</span>	
+			</div>
+			<div class="item">
+				<span class="button-wrap" id="left">
+				    <button class="button button-circle button-raised button-highlight">
+				      <i class="fa fa-angle-left" aria-hidden="true"></i>
+				    </button>
+				</span>
+			</div>
+			<div class="item">
+				<!--pause-->
+				<span class="button-wrap" id="bolt">
+				    <button class="button button-circle button-raised button-caution">
+				      <i class="fa fa-bolt" aria-hidden="true"></i>
+				      <!--<i class="fa fa-pause" aria-hidden="true"></i>-->
+				    </button>
+				</span>
+			</div>
+			<div class="item">
+				<span class="button-wrap" id="right">
+				    <button class="button button-circle button-raised button-highlight">
+				      <i class="fa fa-angle-right" aria-hidden="true"></i>
+				    </button>
+				</span>
+			</div>
+			<div class="item">
+				<span class="button-wrap" id="down">
+				    <button class="button button-circle button-raised button-highlight">
+				      <i class="fa fa-angle-down" aria-hidden="true"></i>
+				    </button>
+				</span>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+			var Snake = function (){
+				this.defaultSnake = {
+				 	width:12,
+				 	height:12,
+				 	step:1,
+				 	times:0,
+				 	range:1,
+				 	color:'#579e4c',
+				 	direction:'right',
+				 	body:[
+				 		{x:2,y:0},
+				 		{x:1,y:0},
+				 		{x:0,y:0},
+					]
+				};
+				this.snake;
+				this.init = function(status){
+					this.snake = this.defaultSnake;
+				}
+				this.display = function(){
+					//改变样式
+					this.changeSnakeBody();
+					//显示
+					var bodyLength = this.snake.body.length;
+					for (var i = 0; i < bodyLength; i++) {
+						var snakeItem = this.snake.body[i];
+						if(snakeItem.x ==null||snakeItem.y ==null){
+							continue;
+						}
+						var divConfig = {
+							x:snakeItem.x,
+							y:snakeItem.y,
+							width:this.snake.width,
+							height:this.snake.height,
+							//color:this.snake.color,
+							class:snakeItem.class
+						}
+						/*if(i==0){
+							//divConfig.x -= 0.3;
+							divConfig.zIndex=1;
+							var div = document.createElement('div');
+							var img = document.createElement('img');
+							img.src = "resource/snake_header_2.png";
+							var left = divConfig.x*divConfig.width;
+							var top = divConfig.y*divConfig.height;
+							img.style.width = divConfig.width*1.2+'px';
+							img.style.height = divConfig.height*1.2+'px';
+							img.style.left = left*1.2+"px";
+							img.style.top = top*1.2+"px";
+							div.style.left = left+"px";
+							div.style.top = top+"px";
+							div.style.width = divConfig.width+'px';
+							div.style.height = divConfig.height+'px';
+							div.style.position = 'absolute';
+							div.classList.add(divConfig.class);
+							div.style.zIndex = divConfig.zIndex;
+							div.appendChild(img);
+						}
+						if(i!=0){
+							//divConfig.y+=0.17;
+							divConfig.color=this.snake.color;
+							var div = common.createDiv(divConfig);
+							
+						}*/
+						if(i!=0){
+							//divConfig.y+=0.17;
+							divConfig.color=this.snake.color;	
+						}
+						var div = common.createDiv(divConfig);
+						this.snake.body[i].flag = div;
+						//div.innerHTML = i;
+						map.appendChild(div);
+					}
+				}
+				this.getHeader = function(){
+					//改头样式
+					var header = this.snake.body[0];
+					if(typeof header.class === 'string'&&header.class!='header'){
+						header.class = 'header';	
+					}else if(typeof header.class === 'undefined'){
+						header.class = 'header';
+					}
+					return header;
+				}
+				this.getLast = function(){
+					//改尾样式
+					var bodyLength = this.snake.body.length;
+					var last = this.snake.body[bodyLength-1];
+					if(typeof last.class === 'string'&&last.class!='last'){
+						last.class = 'last';	
+					}else if(typeof last.class === 'undefined'){
+						last.class = 'last';
+					}
+					return last;
+				}
+				this.getBody = function(i){
+					var bodyLength = this.snake.body.length;
+					if(i===0||i===(bodyLength-1)){
+						return false;
+					}
+					var body = this.snake.body[i];
+					if(typeof body.class === 'string'&&body.class!='body'){
+						body.class = 'body';	
+					}else if(typeof body.class === 'undefined'){
+						body.class = 'body';
+					}
+					return body;
+				}
+				this.changeSnakeBody = function(){
+					var bodyLength = this.snake.body.length;
+					for (var i = 0; i < bodyLength; i++) {
+						var item = this.snake.body[i];
+						if(i==0){
+							this.snake.body[i] = this.getHeader();
+						}else if(i==bodyLength-1){
+							this.snake.body[i] = this.getLast();
+						}else{
+							this.snake.body[i] = this.getBody(i);
+						}
+					}
+				}
+				this.clear = function(){
+					var bodyLength = this.snake.body.length;
+					for (var i = 0; i < bodyLength; i++) {
+						var item = this.snake.body[i];
+						if(item.flag!=null){
+							map.removeChild(item.flag);
+						}
+					}
+				}
+				this.checkIn = function(x,y,first){
+					var isFirst=first?true:false;
+					var bodyLength = this.snake.body.length;
+					var min = isFirst?2:0;
+					console.log(bodyLength-1,min);
+
+					for (var i = bodyLength-1; i < min; i--) {
+						var item = this.snake.body[i];
+						console.log(x==Math.floor(item.x)&&y==Math.floor(item.y),x,y,Math.floor(item.x),Math.floor(item.y));
+						if(x==Math.floor(item.x)&&y==Math.floor(item.y)){
+							return true;
+						}
+					}
+					return false;
+				}
+				this.changeDirection = function(direction){
+					if(typeof direction !="string"){
+						direction = this.snake.direction;
+					}
+					direction = controller.checkDirection(direction);
+					if(direction){
+						switch(direction){
+							case 'up':
+								this.snake.body[0].y -= 1;
+							break;
+							case 'down':
+								this.snake.body[0].y += 1;
+							break;
+							case 'right':
+								this.snake.body[0].x += 1;
+							break;
+							case 'left':
+								this.snake.body[0].x -= 1;
+							break;
+						}	
+					}
+				}
+				this.appendLast = function(){
+					var lastOld = {x:null,y:null,flag:null};
+					this.snake.body.push(lastOld);
+				}
+				this.run = function(){
+					//改蛇体位置
+					for(var i=this.snake.body.length-1;i>0;i--){
+						this.snake.body[i].x = this.snake.body[i-1].x;
+						this.snake.body[i].y = this.snake.body[i-1].y;
+					}
+					//改蛇头位置
+					this.changeDirection(this.snake.direction);
+				}
+			}
+			var Foods = function (){
+				this.width = 12;
+				this.height = 12;
+				this.num = 5;
+				this.foods = [];
+				this.maxWidth = 0;
+				this.maxHeight = 0;
+				this.init = function(){
+					this.food = [];
+					this.maxWidth = Math.floor(common.width/this.width);
+					this.maxHeight = Math.floor(common.height/this.height);
+				}
+				this.createPoint = function(){
+					var x = Math.floor(Math.random()*this.maxWidth);
+					var y = Math.floor(Math.random()*this.maxHeight);
+					var kindList = controller.config.levelCondition.kind.length;
+					//var kind = Math.floor(Math.random()*(this.kind().length));
+					kind = Math.floor(Math.random()*kindList);
+					if(snake.checkIn(x,y)||barrier.checkIn(x,y)||this.checkIn(x,y)){
+						return false;
+					}
+					var point = {x:x,y:y,kind:kind};
+					return point;
+				}
+				this.displayItem = function(){
+					var times = 0;
+					do{
+						if(times>50){
+							//return false;
+						}
+						var point = this.createPoint();
+						times+=1;
+
+					}while(typeof point !== 'object')
+					var kindList = this.kind();
+					var kind = kindList[point.kind];
+					var div = common.createDiv({
+						x:point.x,
+						y:point.y,
+						width:this.width,
+						height:this.height,
+						class:kind.class,
+					});
+					map.appendChild(div);
+					point.flag = div;
+					point.score = kind.score;
+					this.foods.push(point);
+				}
+				this.checkIn = function(x,y){
+					var foodsLength = this.foods.length;
+					for (var i = 0; i < foodsLength; i++) {
+						var item = this.foods[i];
+						if(item.flag){
+							if(item.x==x&&item.y==y){
+								return i;
+							}	
+						}
+					}
+					return false;
+				}
+				this.checkClearItem = function(i){
+					var point = this.foods[i];
+					if(Boolean(point.flag)){
+						return point;
+					}
+					return false;
+				}
+				this.clearItem = function(i){
+					var point = this.checkClearItem(i);
+					if(!point){
+						throw "food index "+i+" not exit";
+					}
+					if(point.flag!=null){
+						map.removeChild(point.flag);
+						point.flag = null;
+					}
+				}
+				this.display = function(){
+					for (var i = 0; i < this.num; i++) {
+						this.displayItem();
+					}
+				}
+				this.clear = function(){
+					var length = this.foods.length;
+					for (var i = 0; i < length; i++) {
+						if(this.foods[i].flag!=null){
+							this.clearItem(i);	
+						}
+					}
+				}
+				this.kind = function(){
+					var kind = [
+						{
+							type:1,
+							score:10,
+							class:'food_1',
+							color:'#123321',
+						},
+						{
+							type:2,
+							score:20,
+							class:'food_2',
+							color:'#aaa011',
+						},
+						{
+							type:3,
+							score:-10,
+							class:'food_3',
+							color:'#b21c3f',
+						},
+					];
+					return kind;
+				}
+			}
+			var Barrier = function (){
+				this.lineNum = 10;
+				this.maxLength = 10;
+				this.minLength = 5;
+				//this.color = '#aabbcc';
+				this.barrier = [];
+				this.class = 'barrier';
+				this.width = 12;
+				this.height = 12;
+				this.maxWidth = 0;
+				this.maxHeight = 0;
+				this.maxMapHeight = 0;
+				this.init = function(lineNum){
+					this.barrier = [];
+					if(lineNum>0){
+						this.lineNum = lineNum;
+					}
+					this.maxWidth = Math.floor(common.width/this.width)-this.maxLength;
+					this.maxHeight = Math.floor(common.height/this.height)-this.maxLength;
+					var map = document.getElementById('map');
+				}
+				this.createStartPoint = function(){
+					var	x = Math.floor(Math.random()*this.maxWidth);
+					var	y = Math.floor(Math.random()*this.maxHeight);
+					var	direction = Math.floor(Math.random()*3);
+					x = x<this.minLength?this.minLength:x;
+					y = y<this.minLength?this.minLength:y;
+					var point = {x:x,y:y,direction:direction};
+					return point;
+				}
+				this.checkPoint = function(obj){
+					if(length>0){
+						for (var i = 0; i < this.barrier.length; i++){
+							var line = this.barrier[i];
+							for (var j = 0; j<line.length; i++) {
+								var startPoint = line[0];
+								if(startPoint.direction==obj.direction&&startPoint.x==obj.x&&startPoint.y==obj.y){
+									return false;
+								}
+							}
+						}
+					}
+				}
+				this.createBarrier = function(){
+					for (var i = 0; i < this.lineNum; i++) {
+						var lineLength = Math.floor(Math.random()* this.maxLength);
+						var line =[];
+						lineLength = lineLength<this.minLength?this.minLength:lineLength;
+						var startPont = {};
+						var x=0,y=0;
+						for (var j = 0; j < lineLength; j++) {
+							if(j==0){
+								do{
+									startPont = this.createStartPoint();	
+								}while(this.checkPoint(startPont));
+								x=startPont.x;
+								y=startPont.y;
+								line.push(startPont);	
+							}else{
+								switch(startPont.direction){
+									case 0:
+										y -=1;
+									break;
+									case 1:
+										y+=1;
+									break;
+									case 2:
+										x+=1;
+									break;
+									case 3:
+										x-=1;
+									break;
+								}
+								line.push({x:x,y:y});
+							}
+						}
+						this.barrier.push(line);
+					}
+				}
+				this.display = function(){
+					this.createBarrier();
+					var length = this.barrier.length;
+					for (var i = 0; i < length; i++) {
+						var line = this.barrier[i];
+						for (var j = 0; j < line.length; j++) {
+							var point = line[j];
+							var div = common.createDiv({x:point.x,y:point.y,width:this.width,height:this.height,class:this.class});
+							this.barrier[i][j].flag = div;
+							map.appendChild(div);
+						}
+					}
+				}
+				this.checkIn = function(x,y){
+					var length = this.barrier.length;
+					for (var i = 0; i < length; i++) {
+						var line = this.barrier[i];
+						for (var j = 0; j < line.length; j++) {
+							var point = line[j];
+							if(x==point.x&&y==point.y){
+								return true
+							}
+						}
+					}
+					return false;	
+				}
+				this.clear = function(){
+					var length = this.barrier.length;
+					for (var i = 0; i < length; i++) {
+						var line = this.barrier[i];
+						for (var j = 0; j < line.length; j++) {
+							var point = line[j];
+							if(point.flag!=null){
+								map.removeChild(point.flag);	
+							}
+						}
+						delete this.barrier[i];
+					}
+				}
+			}
+			var Controller = function(){
+				this.default = {
+					isOVer : false,
+					isEnd : false,
+					score:0,
+					level:1,
+					levelCondition:{}
+				}
+				this.config = {};
+				this.init = function(){
+					this.config = this.default;
+					var levelList = this.levelList();
+					this.config.levelCondition=levelList[this.config.level-1];
+				}
+				this.run = function(){
+					//游戏结束处理
+					if(this.config.isEnd){
+						clearInterval(timer);
+						alert("游戏已通关");
+						return false;
+					}
+					//游戏中处理
+					//改坐标
+					snake.run();
+				 	//判断
+				 	var result = this.checkGame();
+				 	if(0>=result){
+				 		//游戏结束 重新开始
+						clearInterval(timer);
+						var restart = confirm("游戏结束,是否重新开始?");
+						//clearGame();
+						if(restart){
+				 			//startGame();
+				 			//startInterval();
+						}
+				 		return false;
+				 	}
+				 	if(typeof result == "object"){
+				 		//吃到食物
+				 		if(!this.config.isEnd){
+				 			this.eventEat(result.index);	
+				 		}
+				 	}
+				 	//清除
+					snake.clear();
+					//显示
+				 	snake.display();
+				}
+				this.levelList = function(){
+					var level = [
+						{
+							level:1,
+							speed:400,
+							barrierNum:5,
+							score:50,
+							kind:[0],
+						},
+						{
+							level:2,
+							speed:300,
+							barrierNum:10,
+							score:100,
+							kind:[0,1],
+						},
+						{
+							level:3,
+							speed:200,
+							barrierNum:15,
+							score:100,
+							kind:[0,1,2],
+						},
+					];
+					return level;
+				}
+				this.checkGame = function(){
+					var snakeHeader = snake.getHeader();
+					var x = Math.floor(snakeHeader.x);
+					var y = Math.floor(snakeHeader.y);
+					//越界
+					if(x<0||y<0||x>foods.maxWidth-1||y>foods.maxHeight-1){
+						return -1;
+					}
+					//碰到自己
+					if(snake.checkIn(x,y,true)){
+						return -2;
+					}
+					//碰到墙
+					if(barrier.checkIn(x,y)){
+						return 0;
+					}
+					//碰到食物
+					var foodIndex = foods.checkIn(snakeHeader.x,snakeHeader.y);
+					if(typeof foodIndex == "number"){
+						return {index:foodIndex};
+					}
+				}
+				this.checkLevel = function(){
+					console.log(this.config);
+					if(this.config.score>=this.config.levelCondition.score){
+						this.config.level +=1;
+						console.log(this.config.level);
+						this.config.score = 0;
+						console.log(this.config.level);
+						if(this.config.level > this.levelList().length){
+							this.config.isEnd = true;
+						}else{
+							this.setLeveCondition();
+						}
+					}
+				}
+				this.setLeveCondition = function(){
+					
+					var levelList = this.levelList();
+					this.config.levelCondition = levelList[this.config.level-1];
+				}
+				this.eventEat = function(foodsIndex){
+					//吃到食物关卡控制
+					var food = foods.foods[foodsIndex];
+					console.log(food.flag);
+					if(food.flag){
+						this.config.score += food.score;
+						snake.appendLast();
+						this.checkLevel();
+						foods.clearItem(foodsIndex);
+						foods.displayItem();	
+						common.changeView();
+					}
+				}
+				this.checkDirection = function(direction){
+					var directionIndex = common.direction.indexOf(direction);
+					if(typeof directionIndex !== "number"){
+						return false;
+					}
+					var changeDirection = snake.snake.direction;
+					switch(direction){
+						case 'up':
+							if('down'!=changeDirection){
+								changeDirection =  direction;
+							}
+							break;
+						case 'down':
+							if('up'!=changeDirection){
+								changeDirection =  direction;	
+							}
+							break;
+						case 'right':
+							if('left'!=changeDirection){
+								changeDirection =  direction;	
+							}
+							break;
+						case 'left':
+							if('right'!=changeDirection){
+								changeDirection =  direction;	
+							}
+							break;
+					}
+					return changeDirection;
+				}
+			}
+			var map = document.getElementById('map');
+			var Common = function() {
+				//map:document.getByElementById('map'),
+				this.width = 0;
+				this.height = 0;
+				this.direction=['up','down','right','left'];
+				this.init = function(){
+					this.width=map.clientWidth;
+					this.height=map.clientHeight;
+				}
+				this.createDiv=function(object){
+					var div = document.createElement('div');
+					var left = object.x*object.width;
+					var top = object.y*object.height;
+					div.style.left = left+"px";
+					div.style.top = top+"px";
+					div.style.width = object.width+'px';
+					div.style.height = object.height+'px';
+					div.style.background = object.color;
+					div.style.position = 'absolute';
+					if(typeof object.class == 'string'){
+						div.classList.add(object.class);
+					}
+					if(typeof object.zIndex == 'number'){
+						div.style.zIndex = object.zIndex;
+					}
+					return div;
+				}
+				this.changeView = function(){
+					var level = controller.config.level;
+					var score = controller.config.score;
+					var title = document.getElementById('title');
+					var levelDiv = title.querySelector(".level");
+					var items = levelDiv.querySelector(".fa-gift");
+					var changeLevel = false;
+					if(!Boolean(items)){
+						changeLevel = true;
+					}
+					if(Boolean(items)){
+						if(items.lenght!=level){
+							levelDiv.innerHTML = '';
+							changeLevel = true;
+						}
+					}
+					if(changeLevel){
+						var html  = '';
+						for(var i=0;i<level;i++){
+							html +='<i class="fa fa-gift" aria-hidden="true"></i>';
+						}
+						levelDiv.innerHTML = html;
+					}
+					var scoreNum = title.querySelector(".score_num");
+					scoreNum.innerHTML = score;
+				}
+			}
+			var common = new Common();
+			var snake = new Snake();
+			var barrier = new Barrier();
+			var foods = new Foods();
+			var controller = new Controller();
+			var timer;
+			function initPage(){
+				var width = document.documentElement.clientWidth;
+				var height = document.documentElement.clientHeight;
+				var page = document.getElementById('main');
+				page.style.width = width+"px";
+				page.style.height = height+"px";
+				var title = document.getElementById('title');
+				title.style.lineLength =title.clientHeight+"px"; 
+				common.init();	
+			}
+			function clearGame(){
+				snake.clear();
+				foods.clear();
+				barrier.clear();
+			}
+			function startGame(){
+				initPage();
+				snake.init('start');
+				foods.init();
+				controller.init();
+
+				common.changeView();
+				var levelCondition = controller.config.levelCondition;
+				barrier.init(levelCondition.barrierNum);
+
+				//显示障碍物
+				barrier.display();
+				//显示蛇
+				snake.display();
+				//显示障碍物
+				foods.display();
+
+				//页面事件 开始
+			    //加速
+			    var button = document.getElementById('bolt');
+			    button.onmousedown = function(){//down向下
+			    	console.log(controller.config.levelCondition);
+			        var speed = controller.config.levelCondition.speed*0.5;
+			        console.log(speed);
+			        clearInterval(timer);
+			        timer = setInterval("controller.run()",speed);
+			    }
+			    //鼠标抬起
+			    button.onmouseup = function(){//up向上
+			        var speed = controller.config.levelCondition.speed;
+			        clearInterval(timer);
+			     	timer = setInterval("controller.run()",speed);   
+			    }
+			    var left = document.getElementById('left');
+			    left.onclick = function(){
+			    	direction = controller.checkDirection("left");
+					snake.snake.direction = direction;
+			    }
+			    var right = document.getElementById('right');
+			    right.onclick = function(){
+			    	direction = controller.checkDirection("right");
+					snake.snake.direction = direction;
+			    }
+			    var up = document.getElementById('up');
+			    up.onclick = function(){
+			    	direction = controller.checkDirection("up");
+					snake.snake.direction = direction;
+			    }
+			    var down = document.getElementById('down');
+			    down.onclick = function(){
+			    	direction = controller.checkDirection("down");
+					snake.snake.direction = direction;
+			    }
+
+			    //页面事件 结束
+			}
+			function  startInterval(){
+				var levelCondition = controller.config.levelCondition;
+				timer = setInterval("controller.run()",levelCondition.speed);
+			}
+			document.body.onkeydown = function(e){
+				var ev = e || window.event;
+				var direction ='';
+				switch(ev.keyCode){
+					case 13:
+						startInterval();
+						break;
+					case 16:
+					 	clearInterval(timer);
+						break;
+					case 37:
+					 	direction = controller.checkDirection("left");
+						snake.snake.direction = direction;
+						break;
+					case 38:
+					 	direction = controller.checkDirection("up");
+						snake.snake.direction = direction;
+						break;
+					case 39:
+						direction = controller.checkDirection("right");
+						snake.snake.direction = direction;
+						break;
+					case 40:
+						direction = controller.checkDirection("down");
+						snake.snake.direction = direction;
+						break;
+				}
+			}
+			startGame();
+			startInterval();
+	</script>
+</body>
+</html>
