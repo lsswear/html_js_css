@@ -1,0 +1,63 @@
+*, *::before, *::after{
+    box-sizing: border-box;
+    padding: 0px;
+    margin: 0px; 
+}
+.content{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0px;
+}
+.page{
+    max-width: 1000px;
+    background-color: beige;
+    padding: 1em; 
+    display: flex;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.page .play_div{
+    margin-bottom: 10px;
+} 
+.page .lrc_div {
+    /*background-color: rgba(000,000,000,0.1); */
+    width: 100%; 
+    height: 500px;
+    overflow: hidden; 
+    position: relative
+
+}
+.page .lrc_div ul{
+    /*transition: 0.3s ease;*//*只对数值属性有效*/
+}
+.page .lrc_div li{
+    display: block;
+    line-height: 25px;
+    margin-bottom: 0.5em; 
+    text-align: center;
+    list-style-type:none; 
+    font-size: 15px;
+    color: rosybrown; 
+    transition: 0.2s ease-in;
+}
+.page .lrc_div li.active{
+    color: #000;
+    /* line-height: 30px; */
+    transform: scale(1.2);/* 放大 */
+}
+.lrc_div .cover{
+    width: 100%;
+    height: 100%;
+    background-color:  rgba(000,000,000,0.1);
+    position: absolute;
+    top:0;
+    left:0;
+    background: linear-gradient(0deg, beige 0%, rgba(0,0,0,0) 50%, beige 100%);
+}
+.page .lrc{
+    transition-duration: 0.2s;
+    transition-timing-function:ease-out; 
+}
